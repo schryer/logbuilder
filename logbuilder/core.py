@@ -26,23 +26,28 @@ class log_with(object):
 
     loglevel : str
                One of the strings defined in LOGLEVELS.
+
+    maximum_description_length : int (default 60)
+                                 The maximum length of the string representation of each argument or
+                                 keyword before a default object and length description is used.
     '''
 
     LOGLEVELS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 
     
-    def __init__(self, logger, silent=False, loglevel='DEBUG'):
+    def __init__(self, logger, silent=False, loglevel='DEBUG', maximum_description_length=60):
         self.mylog = logger
         self.silent = silent
         self.loglevel = loglevel
+        self.maximum_description_length = maximum_description_length
 
-    def write_log(self, func, args, kwds):
+    def write_log(self, func, args, kwds, max_desc_length):
 
         if len(args) > 0:
             arg_str = 'arguments: '
             for index, arg in enumerate(args):
                 a_str = '{}'.format(arg)
-                if len(a_str) > 40:
+                if len(a_str) > max_desc_length:
                     a_str = '{} of len(str({}))'.format(type(arg), len(a_str))
                 if index == 0:
                     arg_str += ' {}'.format(a_str)
@@ -55,7 +60,7 @@ class log_with(object):
             kwd_str = 'kwds: '
             for index, (key, value) in enumerate(kwds.items()):
                 k_str = '{}={}'.format(key, value)
-                if len(k_str) > 40:
+                if len(k_str) > max_desc_length:
                     k_str = '{}={} of len(str({}))'.format(key, type(value), len(k_str))
                 if index == 0:
                     kwd_str += ' {}'.format(k_str)
@@ -87,7 +92,7 @@ class log_with(object):
         @functools.wraps(func)
         def wrapper(*args, **kwds):
             if not self.silent:
-                self.write_log(func, args, kwds)
+                self.write_log(func, args, kwds, self.maximum_description_length)
             f_result = func(*args, **kwds)
             return f_result
         return wrapper
@@ -128,7 +133,7 @@ def setup_custom_logger(name, level=logging.DEBUG, logging_directory='log'):
     log_file = os.path.join(logging_directory, '{}.log'.format(name))
     fh = logging.FileHandler(log_file)
     fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s'))
+    fh.setFormatter(logging.Formatter('%(asctime)s | %(name)s | %(funcName)s | %(levelname)s | %(message)s'))
 
     sh = logging.StreamHandler()
     sh.setLevel(logging.INFO)
