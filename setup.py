@@ -1,4 +1,4 @@
-# Setup file to distribute isotopomer package using distutils.
+# Setup file to distribute logbuilder package using distutils.
 from distutils.core import setup
 
 prj = 'logbuilder'
